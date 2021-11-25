@@ -2,31 +2,25 @@
 
 namespace App\Http\Controllers;
 
-use App\Mail\VarifyMail;
+use App\Http\Requests\userRegistration;
+use App\Http\Resources\userResource;
+use App\Jobs\emailRegistration;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
-use Illuminate\Support\Facades\Hash;
 use App\Models\User;
 use App\Models\Token;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Mail;
 use Throwable;
 
 class MainController extends Controller
 {
-
     //Register Action
-    public function register(Request $request)
+    public function register(userRegistration $request)
     {
         try {
             //Validate the fields
-            $fields = $request->validate(
-                [
-                    'name' => 'required|string',
-                    'email' => 'required|email|unique:users',
-                    'password' => 'required|string|confirmed',
-                ]
-            );
+            $fields = $request->validated();
 
             $token = $this->createToken($fields['email']);
             $url = 'http://127.0.0.1:8000/api/emailVarification/' . $token . '/' . $request->email;
@@ -39,10 +33,9 @@ class MainController extends Controller
                 'url' => $url
             ]);
             // send email with the template
-            Mail::to($request->email)->send(new VarifyMail($user->url));
-            return $user;
+            emailRegistration::dispatch($request->email, $url); //php artisan queue:work
+            return new userResource($user);
         } catch (Throwable $e) {
-
             return $e->getMessage();
         }
     }
@@ -67,7 +60,6 @@ class MainController extends Controller
                 ]);
             }
         } catch (Throwable $e) {
-
             return $e->getMessage();
         }
     }
@@ -75,17 +67,14 @@ class MainController extends Controller
     public function login(Request $request)
     {
         try {
-            $request = $request->validate([
-                'email' => 'required|email',
-                'password' => 'required|string'
-            ]);
+            $fields = $request->validated();
 
             // Check Student
-            $user = User::where('email', $request['email'])->first();
+            $user = User::where('email', $fields['email'])->first();
             // dd($user->id);
             if (isset($user->id)) {
 
-                if (Hash::check($request['password'], $user->password)) {
+                if (Hash::check($fields['password'], $user->password)) {
                     // Create Token
 
                     //Checking Token 
@@ -105,7 +94,7 @@ class MainController extends Controller
                     $response = [
                         'status' => 1,
                         'message' => 'Logged in successfully',
-                        'user' => $user,
+                        'user' => new userResource($user),
                         'token' => $token
                     ];
 
@@ -122,7 +111,6 @@ class MainController extends Controller
                 ], 404);
             }
         } catch (Throwable $e) {
-
             return $e->getMessage();
         }
     }
@@ -131,8 +119,8 @@ class MainController extends Controller
     {
         try {
             $getToken = $request->bearerToken();
-
-            $decoded = JWT::decode($getToken, new Key("ProgrammersForce", "HS256"));
+            $key = config("constants.KEY");
+            $decoded = JWT::decode($getToken, new Key($key, "HS256"));
             $userID = $decoded->data;
             $userExist = Token::where("userID", $userID)->first();
             if ($userExist) {
@@ -143,7 +131,6 @@ class MainController extends Controller
                 "message" => "logout successfull"
             ]);
         } catch (Throwable $e) {
-
             return $e->getMessage();
         }
     }
@@ -151,19 +138,18 @@ class MainController extends Controller
     public function createToken($data)
     {
         try {
-            $key = "ProgrammersForce";
+            $key = config("constants.KEY");
             $payload = array(
                 "iss" => "http://127.0.0.1:8000",
                 "aud" => "http://127.0.0.1:8000/api",
                 "iat" => time(),
                 "nbf" => 1357000000,
-                "exp" => time() + 1000,
+                "exp" => time() + 10000,
                 "data" => $data
             );
             $jwt = JWT::encode($payload, $key, 'HS256');
             return $jwt;
         } catch (Throwable $e) {
-
             return $e->getMessage();
         }
     }
@@ -171,7 +157,6 @@ class MainController extends Controller
     public function seeProfile(Request $request)
     {
         try {
-
             //get token from header
             $getToken = $request->bearerToken();
 
@@ -182,17 +167,40 @@ class MainController extends Controller
                     "message" => "Invalid Token"
                 ], 200);
             }
-            $decoded = JWT::decode($getToken, new Key("ProgrammersForce", "HS256"));
+            $key = config("constants.KEY");
+            $decoded = JWT::decode($getToken, new Key($key, "HS256"));
             $userID = $decoded->data;
             if ($userID) {
 
                 $profile = User::find($userID);
                 return response([
-                    "Details" => $profile
+                    "Profile" => new userResource($profile)
                 ], 200);
             }
         } catch (Throwable $e) {
+            return $e->getMessage();
+        }
+    }
 
+    public function updateProfile(Request $request, $id)
+    {
+        try {
+            $user = User::all()->where('id', $id)->first();
+            //message on Successfully
+            if (isset($user)) {
+                $user->update($request->all());
+                return response([
+                    'Status' => '200',
+                    'message' => 'you have successfully Updated User Profile',
+                ]);
+            }
+            if ($user == null) {
+                return response([
+                    'Status' => '404',
+                    'message' => 'User not found',
+                ]);
+            }
+        } catch (Throwable $e) {
             return $e->getMessage();
         }
     }
