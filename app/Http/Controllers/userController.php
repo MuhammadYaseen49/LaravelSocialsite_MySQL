@@ -10,63 +10,61 @@ use App\Models\User;
 use App\Models\Token;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
+use Throwable;
 
 class MainController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function index(){}
 
     //Register Action
-    public function register(Request $request){
+    public function register(Request $request)
+    {
+
         //Validate the fields
         $fields = $request->validate(
             [
                 'name' => 'required|string',
                 'email' => 'required|email|unique:users',
                 'password' => 'required|string|confirmed',
-            ]);
+            ]
+        );
 
         $token = $this->createToken($fields['email']);
-        $url = 'http://127.0.0.1:8000/api/emailVarification/' .$token. '/' .$request->email;
+        $url = 'http://127.0.0.1:8000/api/emailVarification/' . $token . '/' . $request->email;
 
         $user = User::create([
             'name' => $fields['name'],
             'email' => $fields['email'],
             'password' => Hash::make($fields['password']),
             'email_verified_at' => null,
-            'url'=> $url
+            'url' => $url
         ]);
         // send email with the template
         Mail::to($request->email)->send(new VarifyMail($user->url));
         return $user;
     }
 
-    public function emailVerification($token,$email){
-  
-        $emailVerify = User::where('email',$email)->first();
-        if($emailVerify->email_verified_at != null){
+    public function emailVerification($token, $email)
+    {
+        $emailVerify = User::where('email', $email)->first();
+        if ($emailVerify->email_verified_at != null) {
             return response([
-            'message'=>'Already Varified'
-        ]);
-        }else if ($emailVerify) {
+                'message' => 'Already Varified'
+            ]);
+        } else if ($emailVerify) {
             $emailVerify->email_verified_at = date('Y-m-d h:i:s');
             $emailVerify->save();
             return response([
-        '   message'=>'Eamil Varified'
-        ]);
-        }else{
+                '   message' => 'Eamil Varified'
+            ]);
+        } else {
             return response([
-            'message'=>'Error'
-        ]);
+                'message' => 'Error'
+            ]);
         }
-       
     }
 
-    public function login(Request $request){
+    public function login(Request $request)
+    {
         $request = $request->validate([
             'email' => 'required|email',
             'password' => 'required|string'
@@ -75,23 +73,23 @@ class MainController extends Controller
         // Check Student
         $user = User::where('email', $request['email'])->first();
         // dd($user->id);
-        if(isset($user->id)){
-            
+        if (isset($user->id)) {
+
             if (Hash::check($request['password'], $user->password)) {
                 // Create Token
 
                 //Checking Token 
                 $isLoggedIn = Token::where('userID', $user->id)->first();
-                if($isLoggedIn){
+                if ($isLoggedIn) {
                     return response([
                         "message" => "User already logged In",
                     ], 400);
-                }       
-                
+                }
+
                 $token = $this->createToken($user->id);
                 // saving token table in db
                 $saveToken = Token::create([
-                    "userID"=>$user->id,
+                    "userID" => $user->id,
                     "token" => $token
                 ]);
                 $response = [
@@ -100,43 +98,39 @@ class MainController extends Controller
                     'user' => $user,
                     'token' => $token
                 ];
-        
+
                 return response($response, 201);
-                
-            }else{
+            } else {
                 return response([
                     'message' => 'Invalid email or password'
                 ], 401);
             }
-
-        }else{
+        } else {
             return response()->json([
-                "status"=>0,
-                "message"=>"Student not found"
-            ],404);
-        
-        } 
-         
+                "status" => 0,
+                "message" => "Student not found"
+            ], 404);
+        }
     }
 
-    public function logout(Request $request){
-        $getToken = $request->bearerToken(); 
+    public function logout(Request $request)
+    {
+        $getToken = $request->bearerToken();
 
-        $decoded = JWT::decode($getToken, new Key("ProgrammersForce","HS256"));
+        $decoded = JWT::decode($getToken, new Key("ProgrammersForce", "HS256"));
         $userID = $decoded->data;
-        $userExist = Token::where("userID",$userID)->first();
-        if($userExist)
-        {
+        $userExist = Token::where("userID", $userID)->first();
+        if ($userExist) {
             $userExist->delete();
         }
 
         return response([
             "message" => "logout successfull"
-        ], 200);
-
+        ]);
     }
 
-    public function createToken($data){
+    public function createToken($data)
+    {
         $key = "ProgrammersForce";
         $payload = array(
             "iss" => "http://127.0.0.1:8000",
@@ -150,20 +144,23 @@ class MainController extends Controller
         return $jwt;
     }
 
-    public function profile(Request $request){
+    public function seeProfile(Request $request)
+    {
+
+
         //get token from header
         $getToken = $request->bearerToken();
-        
+
         // if token is invalid
-        $check = Token::where('token' , $getToken)->first();
-        if(!isset($check)){
+        $check = Token::where('token', $getToken)->first();
+        if (!isset($check)) {
             return response([
-            "message" => "Invalid Token"
+                "message" => "Invalid Token"
             ], 200);
         }
         $decoded = JWT::decode($getToken, new Key("ProgrammersForce", "HS256"));
         $userID = $decoded->data;
-        if($userID) {
+        if ($userID) {
 
             $profile = User::find($userID);
             return response([
