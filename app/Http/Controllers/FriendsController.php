@@ -20,10 +20,7 @@ class FriendsController extends Controller
             $request->validated();
 
             //get token from header and check user id
-            $getToken = $request->bearerToken();
-            $key = config("constants.KEY");
-            $decoded = JWT::decode($getToken, new Key($key, "HS256"));
-            $userID = $decoded->data;
+            $userID = decodingUserID($request);
 
             if ($userID == $request->reciver_id) {
                 return response([
@@ -65,10 +62,7 @@ class FriendsController extends Controller
     {
         try {
             //get token from header and check user id
-            $getToken = $request->bearerToken();
-            $key = config("constants.KEY");
-            $decoded = JWT::decode($getToken, new Key($key, "HS256"));
-            $userID = $decoded->data;
+            $userID = decodingUserID($request);
 
             $req = Friends::all()->where('reciver_id',  $userID)->where('status', '0');
 
@@ -87,10 +81,7 @@ class FriendsController extends Controller
             $request->validated();
 
             //get token from header and check user id
-            $getToken = $request->bearerToken();
-            $key = config("constants.KEY");
-            $decoded = JWT::decode($getToken, new Key($key, "HS256"));
-            $userID = $decoded->data;
+            $userID = decodingUserID($request);
 
             if ($userID == $request->sender_id) {
                 return response([

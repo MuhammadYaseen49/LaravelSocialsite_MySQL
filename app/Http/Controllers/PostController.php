@@ -16,10 +16,7 @@ class PostController extends Controller
         try {
             $request->validated();
 
-            $getToken = $request->bearerToken();
-            $key = config("constants.KEY");
-            $decoded = JWT::decode($getToken, new Key($key, "HS256"));
-            $userID = $decoded->data;
+            $userID = decodingUserID($request);
 
             $post = new Post();
 
@@ -46,7 +43,7 @@ class PostController extends Controller
             return response()->json([
                 "status" => "1",
                 "message" => "Listing Posts",
-                "data" => new postResource($posts)
+                "Profile" => new postResource($posts)
             ], 200);
         } catch (Throwable $e) {
             return $e->getMessage();
@@ -56,16 +53,13 @@ class PostController extends Controller
     public function myPost(Request $request)
     {
         try {
-            $getToken = $request->bearerToken();
-            $key = config("constants.KEY");
-            $decoded = JWT::decode($getToken, new Key($key, "HS256"));
-            $userID = $decoded->data;
+            $userID = decodingUserID($request);
             $my_posts = Post::all()->where("user_id", $userID);
             if ($my_posts) {
                 return response()->json([
                     "status" => "1",
                     "message" => "Post found!",
-                    "data" => new postResource($my_posts)
+                    "Profile" => new postResource($my_posts)
                 ]);
             } else {
                 return response()->json([
@@ -82,10 +76,7 @@ class PostController extends Controller
     {
         try {
             //get token from header and check user id
-            $getToken = $request->bearerToken();
-            $key = config("constants.KEY");
-            $decoded = JWT::decode($getToken, new Key($key, "HS256"));
-            $userID = $decoded->data;
+            $userID = decodingUserID($request);
 
             $post = Post::all()->where('user_id', $userID)->where('id', $id)->first();
             if (isset($post)) {
@@ -111,9 +102,7 @@ class PostController extends Controller
     {
         try {
             //get token from header and check user id
-            $getToken = $request->bearerToken();
-            $decoded = JWT::decode($getToken, new Key("ProgrammersForce", "HS256"));
-            $userID = $decoded->data;
+            $userID = decodingUserID($request);
             $delete_post = Post::all()->where('user_id', $userID)->where('id', $id)->first();
 
             if (isset($delete_post)) {

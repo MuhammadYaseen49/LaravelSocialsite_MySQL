@@ -9,7 +9,6 @@ use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 use App\Models\Post;
 use App\Models\Comment;
-
 use Illuminate\Support\Facades\DB;
 
 class CommentController extends Controller
@@ -17,11 +16,9 @@ class CommentController extends Controller
     public function createComment(commentCreate $request)
     {
         try {
-            $curr_token = $request->bearerToken();
-            $key = config("constants.KEY");
-            $decode = JWT::decode($curr_token, new Key($key, 'HS256'));
             $request->validated();
-
+            $userID = decodingUserID($request);
+           
             $post_exists = Post::where('id', '=', $request->post_id)->first();
 
             if (isset($post_exists)) {
@@ -32,7 +29,7 @@ class CommentController extends Controller
                     }
 
                     $comment = Comment::create([
-                        'user_id' => $decode->data,
+                        'user_id' => $userID,
                         'post_id' => $request->post_id,
                         'comments' => $request->comments,
                         'attachment' => $attachment
@@ -49,7 +46,7 @@ class CommentController extends Controller
                         ]);
                     }
                 } elseif ($post_exists->privacy == 'Private' or $post_exists->privacy == 'private') {
-                    $userSeen = DB::select('select * from friends where ((sender_id = ? AND reciver_id = ?) OR (sender_id = ? AND reciver_id = ?)) AND status = ?', [$post_exists->user_id, $decode->data, $decode->data, $post_exists->user_id, 'Accept']);
+                    $userSeen = DB::select('select * from friends where ((sender_id = ? AND reciver_id = ?) OR (sender_id = ? AND reciver_id = ?)) AND status = ?', [$post_exists->user_id, $userID, $post_exists->user_id, 'Accept']);
                     if (!empty($userSeen)) {
                         $attachment = null;
                         if ($request->file('attachment') != null) {
@@ -57,7 +54,7 @@ class CommentController extends Controller
                         }
 
                         $comment = Comment::create([
-                            'user_id' => $decode->data,
+                            'user_id' => $userID,
                             'post_id' => $request->post_id,
                             'comments' => $request->comments,
                             'attachment' => $attachment
@@ -93,11 +90,9 @@ class CommentController extends Controller
     public function updateComment(Request $request, $id)
     {
         try {
-            $currToken = $request->bearerToken();
-            $key = config("constants.KEY");
-            $decode = JWT::decode($currToken, new Key($key, 'HS256'));
+            $userID = decodingUserID($request);
 
-            $comment_exists = Comment::where('id', '=', $id)->first();
+            $comment_exists = Comment::where('user_id', '=', $userID)->where('id', '=', $id)->first();
             if (isset($comment_exists)) {
                 $post_privacy = POST::where('id', '=', $comment_exists->post_id)->first();
                 if ($post_privacy->privacy == 'Public' or $post_privacy->privacy == 'public') {
@@ -115,7 +110,7 @@ class CommentController extends Controller
                         'message' => 'Comment Updated Succesfully',
                     ]);
                 } elseif ($post_privacy->privacy == 'Private' or $post_privacy->privacy == 'private') {
-                    $userSeen = DB::select('select * from friend_requests where ((sender_id = ? AND reciever_id = ?) OR (sender_id = ? AND reciever_id = ?)) AND status = ?', [$post_privacy->user_id, $decode->data, $decode->data, $post_privacy->user_id, 'Accept']);
+                    $userSeen = DB::select('select * from friend_requests where ((sender_id = ? AND reciever_id = ?) OR (sender_id = ? AND reciever_id = ?)) AND status = ?', [$post_privacy->user_id, $userID, $post_privacy->user_id, 'Accept']);
                     if (!empty($userSeen)) {
                         if ($request->file('attachment') != null) {
                             unlink(storage_path('app/' . $comment_exists->attachment));
@@ -148,11 +143,9 @@ class CommentController extends Controller
     public function deleteComment(Request $request, $id)
     {
         try {
-            $curr_token = $request->bearerToken();
-            $key = config("constants.KEY");
-            $decode = JWT::decode($curr_token, new Key($key, 'HS256'));
+            $userID = decodingUserID($request);
 
-            $comment = Comment::where('id', '=', $id, 'AND', 'user_id', '=', $decode->data)->first();
+            $comment = Comment::where('id', '=', $id, 'AND', 'user_id', '=', $userID)->first();
             if (isset($comment)) {
                 if ($comment->attachment != null) {
                     unlink(storage_path('app/' . $comment->attachment));
