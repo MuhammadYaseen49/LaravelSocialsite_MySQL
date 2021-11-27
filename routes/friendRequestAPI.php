@@ -6,8 +6,8 @@ use Illuminate\Support\Facades\Route;
 Route::group(["middleware" => ["verification"]], function(){
 
     // Friend Request Routes
-    Route::post('sendRequest', [FriendsController::class, 'sendFriendRequest']);
+    Route::post('sendRequest/{id}', [FriendsController::class, 'sendRequest']);
     Route::post('myRequests', [FriendsController::class, 'myRequests']);
-    Route::post('acceptRequest', [FriendsController::class, 'acceptRequest']);
+    Route::post('acceptRequest/{id}', [FriendsController::class, 'acceptRequest']);
 
 });

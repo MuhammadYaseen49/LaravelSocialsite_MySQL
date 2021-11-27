@@ -17,7 +17,7 @@ class Friends extends Migration
         Schema::create('friends', function (Blueprint $table) {
             $table->id();
             $table->integer('sender_id');
-            $table->integer('reciver_id');
+            $table->integer('receiver_id');
             $table->string('status')->default(false);
         });
     }

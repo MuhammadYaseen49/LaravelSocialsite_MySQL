@@ -10,44 +10,39 @@ use App\Models\User;
 
 class FriendsController extends Controller
 {
-    //
-    public function sendFriendRequest(sendFriendRequest $request)
+    public function sendRequest(sendFriendRequest $request)
     {
         try {
             $request->validated();
-
-            //get token from header and check user id
             $userID = decodingUserID($request);
 
-            if ($userID == $request->reciver_id) {
+            if ($userID == $request->receiver_id) {
                 return response([
                     "Message" => "You cannot Send Friend Request to yourself"
                 ]);
             }
-            //check if recever_user is exists in Users_table DB
-            $users_table = User::where('id', '=', $request->reciver_id)->first();
+            $users = User::where('id', $request->receiver_id)->first();
             $data = new Friends();
 
-            //chcek if user is already sended request or not
-            $check_alreadySent = Friends::where('sender_id', $userID)->where('reciver_id', $request->reciver_id)->first();
+            $checked = Friends::where('sender_id', $userID)->where('receiver_id', $request->receiver_id)->first();
 
-            if (isset($check_alreadySent)) {
+            if (isset($checked)) {
                 return response([
-                    "Message" => "You have already Sent the Friend Request to this User"
+                    "Message" => "You have already Sent the Friend Request"
                 ]);
             }
 
-            if (isset($users_table)) {
-                $data->reciver_id = $request->reciver_id;
+            if (isset($users)) {
+                $data->receiver_id = $request->receiver_id;
                 $data->sender_id = $userID;
                 $data->save();
 
                 return response([
-                    "Message" => "You have Successfully Send Friend Request "
+                    "Message" => "You have Successfully Send Friend Request"
                 ]);
             } else {
                 return response([
-                    "Message" => "This User Doesnot Exists in Records"
+                    "Message" => "This User Does not Exist in Records"
                 ]);
             }
         } catch (Throwable $e) {
@@ -58,14 +53,11 @@ class FriendsController extends Controller
     public function myRequests(Request $request)
     {
         try {
-            //get token from header and check user id
             $userID = decodingUserID($request);
+            $findRequest = Friends::all()->where('receiver_id',  $userID)->where('status', '0');
 
-            $req = Friends::all()->where('reciver_id',  $userID)->where('status', '0');
-
-            if (isset($req)) {
-
-                return $req;
+            if (isset($findRequest)) {
+                return $findRequest;
             }
         } catch (Throwable $e) {
             return $e->getMessage();
@@ -76,34 +68,31 @@ class FriendsController extends Controller
     {
         try {
             $request->validated();
-
-            //get token from header and check user id
             $userID = decodingUserID($request);
 
             if ($userID == $request->sender_id) {
                 return response([
-                    "Message" => "You cannot Receive Friend Request of yourself"
+                    "Message" => "You cannot receive friend request of yourself"
                 ]);
             }
 
-            //check if recever_user is exists in Request Table DB
-            $recive_req = Friends::where('sender_id', $request->sender_id)->where('reciver_id', $userID)->first();
+            $receiveRequest = Friends::where('sender_id', $request->sender_id)->where('receiver_id', $userID)->first();
 
-            if ($recive_req->status == '1') {
+            if ($receiveRequest->status == '1') {
                 return response([
-                    "Message" => "You are already Friend of this User"
+                    "Message" => "You are already friend of this u"
                 ]);
             }
 
-            if (isset($recive_req)) {
-                $recive_req->status = '1';
-                $recive_req->save();
+            if (isset($receiveRequest)) {
+                $receiveRequest->status = '1';
+                $receiveRequest->save();
                 return response([
                     "Message" => "Congratulations! You are Friends Now"
                 ]);
             } else {
                 return response([
-                    "Message" => "This User Doesnot Sent you Friend Request"
+                    "Message" => "This User Does not Send you Friend Request"
                 ]);
             }
         } catch (Throwable $e) {

@@ -96,7 +96,6 @@ class PostController extends Controller
         try {
             //get token from header and check user id
             $userID = decodingUserID($request);
-
             $post = Post::all()->where('user_id', $userID)->where('id', $id)->first();
             if (isset($post)) {
                 $post->update($request->all());
@@ -108,8 +107,7 @@ class PostController extends Controller
             } else {
                 //message on Unauthorize
                 return response([
-                    'Status' => '200',
-                    'message' => 'you are not Authorize to Update other User Posts',
+                    'message' => 'you are unuthorize to Update other User Posts',
                 ]);
             }
         } catch (Throwable $e) {
@@ -128,13 +126,12 @@ class PostController extends Controller
                 $delete_post->delete($id);
                 return response([
                     'Status' => '200',
-                    'message' => 'you have successfully Deleted Entry',
+                    'message' => 'you have successfully Deleted the Post',
                     'Deleted Post ID' => $id
                 ]);
             } else {
                 return response([
-                    'Status' => '201',
-                    'message' => 'you are Authorize to delete other User Posts'
+                    'message' => 'you are unauthorize to delete other User Posts'
                 ]);
             }
         } catch (Throwable $e) {

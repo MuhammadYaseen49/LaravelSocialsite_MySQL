@@ -14,7 +14,7 @@ class sendFriendRequest extends FormRequest
     public function rules()
     {
         return [
-            'reciver_id' => 'required'
+            'receiver_id' => 'required'
         ];
     }
 }
