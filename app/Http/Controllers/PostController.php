@@ -13,35 +13,56 @@ class PostController extends Controller
     public function createPost(postCreate $request){
         try {
             $request->validated();
-
             $userID = decodingUserID($request);
-
             $post = new Post();
+           
+            if(($post != null)){
+                if($request->title == null || $request->body == null || $request->privacy == null){
+                    return response([
+                        "status" => 0,
+                        "Error" => "Title, Body and Privacy fields are required!"
+                    ]);
+                }
+                
+                if($request->privacy != null){
+                    if ($request->privacy == "public" || $request->privacy == "Public" ||
+                        $request->privacy == "private" || $request->privacy == "Private") {
+                    
+                            $privacy =  $request->privacy;
+                    
+                    } else {
+                        return response([
+                            "status" => 0,
+                            'Privacy' => 'Enter Public or Private'
+                        ]);
+                    }
+                }
+            }
 
             $post->user_id = $userID;
             $post->title = $request->title;
             $post->body = $request->body;
             $post->attachment = $request->attachment;
-            $post->privacy = $request->privacy;
+            $post->privacy = $privacy;
             $post->save();
 
             return response([
-                "status" => 1,
-                "message" => "Post created!"
+                    "status" => 1,
+                    "message" => "Post created!"
             ]);
+            
         } catch (Throwable $e) {
             return $e->getMessage();
         }
     }
 
-    public function listPost()
+    public function allPosts()
     {
         try {
             $posts = Post::all();
             return response()->json([
                 "status" => "1",
-                "message" => "Listing Posts",
-                "Profile" => new postResource($posts)
+                "Posts" => new postResource($posts)
             ], 200);
         } catch (Throwable $e) {
             return $e->getMessage();

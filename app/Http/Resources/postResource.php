@@ -7,11 +7,15 @@ use Illuminate\Http\Resources\Json\JsonResource;
 class postResource extends JsonResource
 {
     public function toArray($request)
-    {
-        $resources = $request->all();
+    {  
+        // return parent::toArray($request);
 
-        return[
-            $resources
+        //With Resource
+        return [
+            'Title' => $this->title,
+            'Body' => $this->body,
+            'Attachment' => $this->attachment,
+            'Privacy' => $this->privacy
         ];
     }
 }

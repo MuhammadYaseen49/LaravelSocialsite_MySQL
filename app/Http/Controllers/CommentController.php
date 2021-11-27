@@ -17,10 +17,10 @@ class CommentController extends Controller
             $request->validated();
             $userID = decodingUserID($request);
            
-            $post_exists = Post::where('id', '=', $request->post_id)->first();
+            $post_exists = Post::where('id', $request->post_id)->first();
 
             if (isset($post_exists)) {
-                if ($post_exists->privacy == 'Public' or $post_exists->privacy == 'public') {
+                if ($post_exists->privacy == 'Public' || $post_exists->privacy == 'public') {
                     $attachment = null;
                     if ($request->file('attachment') != null) {
                         $attachment = $request->file('attachment')->store('commentFiles');
@@ -40,11 +40,11 @@ class CommentController extends Controller
                         ]);
                     } else {
                         return response([
-                            'message' => 'Something Went Wrong While added Comment',
+                            'message' => 'Something Went Wrong',
                         ]);
                     }
                 }
-                 elseif ($post_exists->privacy == 'Private' or $post_exists->privacy == 'private') {
+                 elseif ($post_exists->privacy == 'Private' || $post_exists->privacy == 'private') {
                     $userSeen = DB::select('select * from friends where ((sender_id = ? AND reciver_id = ?) OR (sender_id = ? AND reciver_id = ?)) AND status = ?', [$post_exists->user_id, $userID, $post_exists->user_id, 'Accept']);
                     if (!empty($userSeen)) {
                         $attachment = null;
@@ -66,12 +66,12 @@ class CommentController extends Controller
                             ]);
                         } else {
                             return response([
-                                'message' => 'Something Went Wrong While added Comment',
+                                'message' => 'Something Went Wrong',
                             ]);
                         }
                     } else {
                         return response([
-                            'message' => 'This is Private Post. You are not authorize to Comment on this Post',
+                            'message' => 'This is Private Post. You are unuthorize to Comment on this Post',
                         ]);
                     }
                 }
@@ -91,11 +91,11 @@ class CommentController extends Controller
         try {
             $userID = decodingUserID($request);
 
-            $comment_exists = Comment::where('user_id', '=', $userID)->where('id', '=', $id)->first();
+            $comment_exists = Comment::where('user_id', $userID)->where('id', '=', $id)->first();
             if (isset($comment_exists)) {
-                $post_privacy = POST::where('id', '=', $comment_exists->post_id)->first();
-                if ($post_privacy->privacy == 'Public' or $post_privacy->privacy == 'public') {
-                    if ($request->file('attachment') != null and $comment_exists->attachment != null) {
+                $post_privacy = POST::where('id', $comment_exists->post_id)->first();
+                if ($post_privacy->privacy == 'Public' || $post_privacy->privacy == 'public') {
+                    if ($request->file('attachment') != null && $comment_exists->attachment != null) {
                         unlink(storage_path('app/' . $comment_exists->attachment));
                     }
                     $comment_exists->update($request->all());
@@ -108,7 +108,7 @@ class CommentController extends Controller
                         'Updated Comment' => new commentResource($comment_exists),
                         'message' => 'Comment Updated Succesfully',
                     ]);
-                } elseif ($post_privacy->privacy == 'Private' or $post_privacy->privacy == 'private') {
+                } elseif ($post_privacy->privacy == 'Private' || $post_privacy->privacy == 'private') {
                     $userSeen = DB::select('select * from friend_requests where ((sender_id = ? AND reciever_id = ?) OR (sender_id = ? AND reciever_id = ?)) AND status = ?', [$post_privacy->user_id, $userID, $post_privacy->user_id, 'Accept']);
                     if (!empty($userSeen)) {
                         if ($request->file('attachment') != null) {
@@ -125,7 +125,7 @@ class CommentController extends Controller
                         ]);
                     } else {
                         return response([
-                            'message' => 'This Post is Private and you are not a friend.',
+                            'message' => 'This Post is Private and you are not a friend',
                         ]);
                     }
                 }
@@ -144,7 +144,7 @@ class CommentController extends Controller
         try {
             $userID = decodingUserID($request);
 
-            $comment = Comment::where('id', '=', $id, 'AND', 'user_id', '=', $userID)->first();
+            $comment = Comment::where('id', $id, 'AND', 'user_id', $userID)->first();
             if (isset($comment)) {
                 if ($comment->attachment != null) {
                     unlink(storage_path('app/' . $comment->attachment));

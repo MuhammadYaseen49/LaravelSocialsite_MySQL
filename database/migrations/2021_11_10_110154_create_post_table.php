@@ -19,7 +19,7 @@ class CreatePostTable extends Migration
             $table->string("title",150);
             $table->string("body",255);
             $table->string("attachment")->nullable();
-            $table->string("privacy")->nullable();
+            $table->string("privacy");
             
         });
     }

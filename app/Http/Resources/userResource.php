@@ -5,8 +5,7 @@ namespace App\Http\Resources;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class userResource extends JsonResource
-{
-    
+{ 
     public function toArray($request)
     {
         // return parent::toArray($request);
@@ -17,6 +16,5 @@ class userResource extends JsonResource
             'Email' => $this->email,
             'Account Created at' => $this->email_verified_at
         ];
-    
     }
 }
