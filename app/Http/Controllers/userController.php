@@ -15,11 +15,9 @@ use Throwable;
 
 class UserController extends Controller
 {
-    //Register Action
     public function register(userRegistration $request)
     {
         try {
-            //Validate the fields
             $fields = $request->validated();
             
             $token = (new GenerateToken)->createToken($fields['email']);
@@ -31,7 +29,6 @@ class UserController extends Controller
                 'email_verified_at' => null,
                 'url' => $url
             ]);
-            // send email with the template
             emailRegistration::dispatch($request->email, $url); //php artisan queue:work
             return new userResource($user);
         } catch (Throwable $e) {
@@ -68,15 +65,11 @@ class UserController extends Controller
         try {
             $fields = $request->validated();
 
-            // Check Student
             $user = User::where('email', $fields['email'])->first();
-            // dd($user->id);
             if (isset($user->id)) {
 
                 if (Hash::check($fields['password'], $user->password)) {
-                    // Create Token
-
-                    //Checking Token 
+                
                     $isLoggedIn = Token::where('userID', $user->id)->first();
                     if ($isLoggedIn) {
                         return response([
@@ -85,7 +78,6 @@ class UserController extends Controller
                     }
 
                     $token = (new GenerateToken)->createToken($user->id);
-                    // saving token table in db
                     $saveToken = Token::create([
                         "userID" => $user->id,
                         "token" => $token
@@ -134,9 +126,7 @@ class UserController extends Controller
     public function seeProfile(Request $request)
     {
         try {
-            //get token from header
             $userID = decodingUserID($request);
-            // if token is invalid
             $check = Token::where('token', $request->bearerToken())->first();
             if (!isset($check)) {
                 return response([
@@ -159,7 +149,6 @@ class UserController extends Controller
     {
         try {
             $user = User::all()->where('id', $id)->first();
-            //message on Successfully
             if (isset($user)) {
                 $user->update($request->all());
 

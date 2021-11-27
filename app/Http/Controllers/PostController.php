@@ -94,18 +94,15 @@ class PostController extends Controller
     public function updatePost(Request $request, $id)
     {
         try {
-            //get token from header and check user id
             $userID = decodingUserID($request);
             $post = Post::all()->where('user_id', $userID)->where('id', $id)->first();
             if (isset($post)) {
                 $post->update($request->all());
-                //message on Successfully
                 return response([
                     'Status' => '200',
                     'message' => 'you have successfully Update Post',
                 ]);
             } else {
-                //message on Unauthorize
                 return response([
                     'message' => 'you are unuthorize to Update other User Posts',
                 ]);
@@ -118,7 +115,6 @@ class PostController extends Controller
     public function deletePost(Request $request, $id)
     {
         try {
-            //get token from header and check user id
             $userID = decodingUserID($request);
             $delete_post = Post::all()->where('user_id', $userID)->where('id', $id)->first();
 
