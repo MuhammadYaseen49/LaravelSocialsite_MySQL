@@ -5,8 +5,6 @@ namespace App\Http\Controllers;
 use App\Http\Requests\commentCreate;
 use App\Http\Resources\commentResource;
 use Illuminate\Http\Request;
-use Firebase\JWT\JWT;
-use Firebase\JWT\Key;
 use App\Models\Post;
 use App\Models\Comment;
 use Illuminate\Support\Facades\DB;
@@ -45,7 +43,8 @@ class CommentController extends Controller
                             'message' => 'Something Went Wrong While added Comment',
                         ]);
                     }
-                } elseif ($post_exists->privacy == 'Private' or $post_exists->privacy == 'private') {
+                }
+                 elseif ($post_exists->privacy == 'Private' or $post_exists->privacy == 'private') {
                     $userSeen = DB::select('select * from friends where ((sender_id = ? AND reciver_id = ?) OR (sender_id = ? AND reciver_id = ?)) AND status = ?', [$post_exists->user_id, $userID, $post_exists->user_id, 'Accept']);
                     if (!empty($userSeen)) {
                         $attachment = null;

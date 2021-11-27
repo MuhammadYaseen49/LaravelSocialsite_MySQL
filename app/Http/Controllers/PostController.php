@@ -5,8 +5,6 @@ namespace App\Http\Controllers;
 use App\Http\Requests\postCreate;
 use App\Http\Resources\postResource;
 use App\Models\Post;
-use Firebase\JWT\JWT;
-use Firebase\JWT\Key;
 
 use Illuminate\Http\Request;
 

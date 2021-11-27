@@ -1,11 +1,11 @@
 <?php
-namespace app\services;
+namespace App\Services;
 
 use Firebase\JWT\JWT;
 use Throwable;
 
 class GenerateToken {
-    public function createToken($data)
+    public function createToken($id)
     {
         try {
             $key = config("constants.KEY");
@@ -15,7 +15,7 @@ class GenerateToken {
                 "iat" => time(),
                 "nbf" => 1357000000,
                 "exp" => time() + 10000,
-                "data" => $data
+                "id" => $id
             );
             $jwt = JWT::encode($payload, $key, 'HS256');
             return $jwt;

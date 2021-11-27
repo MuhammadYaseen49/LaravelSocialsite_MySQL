@@ -1,17 +1,17 @@
 <?php
 
-use App\Http\Controllers\MainController;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
-Route::post("register", [MainController::class, "register"]);
-Route::get('emailVerification/{token}/{email}',[MainController::class,'emailVerification']);
-Route::post("login", [MainController::class, "login"]);
+Route::post("register", [UserController::class, "register"]);
+Route::get('emailVerification/{token}/{email}',[UserController::class,'emailVerification']);
+Route::post("login", [UserController::class, "login"]);
 
 Route::group(["middleware" => ["verification"]], function(){
 
-    // Route::get("profile", [StudentController::class, "profile"]);
-    Route::post("logout", [MainController::class, "logout"]);
-    Route::post("seeProfile", [MainController::class, "seeProfile"]);
+    Route::post("logout", [UserController::class, "logout"]);
+    Route::post("seeProfile", [UserController::class, "seeProfile"]);
+    Route::post("updateProfile/{id}", [UserController::class, "updateProfile"]);
 
  
 });

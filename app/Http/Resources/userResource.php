@@ -6,18 +6,17 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class userResource extends JsonResource
 {
-    /**
-     * Transform the resource into an array.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return array|\Illuminate\Contracts\Support\Arrayable|\JsonSerializable
-     */
+    
     public function toArray($request)
     {
-       $resources = $request->all();
+        // return parent::toArray($request);
 
-       return[
-           $resources
-       ];
+        //With Resource
+        return [
+            'Name' => $this->name,
+            'Email' => $this->email,
+            'Account Created at' => $this->email_verified_at
+        ];
+    
     }
 }

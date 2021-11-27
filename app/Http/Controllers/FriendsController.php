@@ -7,9 +7,6 @@ use App\Http\Requests\sendFriendRequest;
 use App\Models\Friends;
 use Illuminate\Http\Request;
 use App\Models\User;
-use Firebase\JWT\JWT;
-use Firebase\JWT\Key;
-
 
 class FriendsController extends Controller
 {

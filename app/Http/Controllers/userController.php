@@ -2,19 +2,18 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\userLogIn;
 use App\Http\Requests\userRegistration;
 use App\Http\Resources\userResource;
 use App\Jobs\emailRegistration;
-use Firebase\JWT\JWT;
-use Firebase\JWT\Key;
 use App\Models\User;
 use App\Models\Token;
-use app\services\GenerateToken;
+use App\Services\GenerateToken;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
 use Throwable;
 
-class MainController extends Controller
+class UserController extends Controller
 {
     //Register Action
     public function register(userRegistration $request)
@@ -22,10 +21,9 @@ class MainController extends Controller
         try {
             //Validate the fields
             $fields = $request->validated();
-
+            
             $token = (new GenerateToken)->createToken($fields['email']);
-            $url = 'http://127.0.0.1:8000/api/emailVarification/' . $token . '/' . $request->email;
-
+            $url = 'http://127.0.0.1:8000/api/emailVerification/' . $token . '/' . $request->email;
             $user = User::create([
                 'name' => $fields['name'],
                 'email' => $fields['email'],
@@ -53,7 +51,7 @@ class MainController extends Controller
                 $emailVerify->email_verified_at = date('Y-m-d h:i:s');
                 $emailVerify->save();
                 return response([
-                    '   message' => 'Eamil Varified'
+                    'message' => 'Eamil Varified'
                 ]);
             } else {
                 return response([
@@ -65,7 +63,7 @@ class MainController extends Controller
         }
     }
 
-    public function login(Request $request)
+    public function login(userLogIn $request)
     {
         try {
             $fields = $request->validated();
@@ -147,7 +145,6 @@ class MainController extends Controller
             }
 
             if ($userID) {
-
                 $profile = User::find($userID);
                 return response([
                     "Profile" => new userResource($profile)
@@ -165,6 +162,7 @@ class MainController extends Controller
             //message on Successfully
             if (isset($user)) {
                 $user->update($request->all());
+
                 return response([
                     'Status' => '200',
                     'message' => 'you have successfully Updated User Profile',
